@@ -22,11 +22,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Pre-PR Quality Gates**: Workers are now instructed to run `npm run type-check && npm run lint && npm run test` BEFORE creating a PR
 - **Enhanced Agent Completion Detection**: More robust pattern matching for agent output
 
+### Fixed
+
+- **SC2115**: Safe `rm -rf` in wt.sh using `${var:?}` to prevent empty variable expansion
+- **SC2155**: Separated local declarations from command substitutions in orchestrator-loop.sh (6 instances)
+- **SC2034**: Prefixed unused variables with `_` in orchestrator.sh read loop
+
 ### Improved
 
 - Better integration of QA Guardian, DevOps Engineer, and Code Simplifier agents
 - More thorough quality checks throughout the development lifecycle
 - Agents now run at multiple checkpoints: pre-PR (worker), post-CI (orchestrator), and post-merge (planner)
+- All scripts now pass shellcheck without warnings
 
 ## [2.0.0] - 2026-01-13
 
