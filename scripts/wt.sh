@@ -94,7 +94,7 @@ case "$1" in
     clean)
         if [ -n "$2" ]; then
             echo "Removing all worktrees for $2..."
-            rm -rf "$WORKTREE_BASE/$2"
+            rm -rf "${WORKTREE_BASE:?}/${2:?}"
             echo "✓ Cleaned"
         fi
         ;;

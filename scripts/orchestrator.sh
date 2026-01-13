@@ -88,7 +88,7 @@ worker_init() {
 # Initialize all workers from active-sessions.log
 workers_init_all() {
     local TAB=2
-    while IFS='|' read -r name branch path date task; do
+    while IFS='|' read -r name _branch _path _date _task; do
         if [ -n "$name" ]; then
             worker_init "$TAB" "$name"
             ((TAB++))

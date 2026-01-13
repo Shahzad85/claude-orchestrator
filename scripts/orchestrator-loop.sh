@@ -31,7 +31,8 @@ get_project_name() {
 
 update_project_status() {
     local NEW_STATUS="$1"
-    local TMP_FILE=$(mktemp)
+    local TMP_FILE
+    TMP_FILE=$(mktemp)
     jq --arg status "$NEW_STATUS" '.status = $status' "$PROJECT_STATE_FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$PROJECT_STATE_FILE"
     log "Project status updated: $NEW_STATUS"
 }
@@ -39,7 +40,8 @@ update_project_status() {
 update_worker_status_in_project() {
     local WORKER_NAME="$1"
     local NEW_STATUS="$2"
-    local TMP_FILE=$(mktemp)
+    local TMP_FILE
+    TMP_FILE=$(mktemp)
     jq --arg name "$WORKER_NAME" --arg status "$NEW_STATUS" \
         '(.workers[] | select(.name == $name)).status = $status' \
         "$PROJECT_STATE_FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$PROJECT_STATE_FILE"
@@ -50,7 +52,8 @@ check_all_project_workers_complete() {
     if ! is_project_mode; then return 1; fi
 
     # Count workers that are not yet merged
-    local ACTIVE=$(jq '[.workers[] | select(.status != "merged")] | length' "$PROJECT_STATE_FILE" 2>/dev/null)
+    local ACTIVE
+    ACTIVE=$(jq '[.workers[] | select(.status != "merged")] | length' "$PROJECT_STATE_FILE" 2>/dev/null)
 
     if [ -z "$ACTIVE" ] || [ "$ACTIVE" -eq 0 ]; then
         return 0  # All workers complete
@@ -310,7 +313,8 @@ mark_pr_reviewed() {
 # Check if PR needs devops review (infrastructure changes)
 needs_devops_review() {
     local PR_NUM="$1"
-    local FILES=$(gh pr diff "$PR_NUM" --repo "$REPO_FULL" --name-only 2>/dev/null)
+    local FILES
+    FILES=$(gh pr diff "$PR_NUM" --repo "$REPO_FULL" --name-only 2>/dev/null)
 
     # Check for infrastructure-related files
     if echo "$FILES" | grep -qE "(\.github/|vercel\.json|supabase/|Dockerfile|docker-compose|\.env|middleware\.ts|playwright\.config)"; then
@@ -322,7 +326,8 @@ needs_devops_review() {
 # Check if PR needs code-simplifier (medium+ changes)
 needs_code_simplifier() {
     local PR_NUM="$1"
-    local STATS=$(gh pr view "$PR_NUM" --repo "$REPO_FULL" --json additions,deletions --jq '.additions + .deletions' 2>/dev/null)
+    local STATS
+    STATS=$(gh pr view "$PR_NUM" --repo "$REPO_FULL" --json additions,deletions --jq '.additions + .deletions' 2>/dev/null)
 
     # Run code-simplifier for PRs with 50+ lines changed (lowered from 100)
     if [ -n "$STATS" ] && [ "$STATS" -ge 50 ]; then
@@ -352,7 +357,8 @@ get_agents_run() {
     cat "$STATE_DIR/tab${1}_agents_run" 2>/dev/null || echo ""
 }
 add_agent_run() {
-    local CURRENT=$(get_agents_run "$1")
+    local CURRENT
+    CURRENT=$(get_agents_run "$1")
     echo "$CURRENT $2" > "$STATE_DIR/tab${1}_agents_run"
 }
 has_agent_run() {
