@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Orchestrator Log Event",
+  "description": "Structured log event for Claude Orchestrator observability",
+  "type": "object",
+  "required": ["timestamp", "event", "level"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "orchestrator_started",
+        "orchestrator_stopped",
+        "worker_state_change",
+        "worker_initialized",
+        "worker_nudged",
+        "pr_detected",
+        "pr_ci_status",
+        "review_started",
+        "review_completed",
+        "agent_started",
+        "agent_completed",
+        "pr_merged",
+        "worker_closed",
+        "project_status_change",
+        "project_workers_complete",
+        "notification_sent",
+        "error"
+      ],
+      "description": "Type of event"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["debug", "info", "warn", "error"],
+      "description": "Log level"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable message"
+    },
+    "worker": {
+      "type": "object",
+      "properties": {
+        "tab": {
+          "type": "integer",
+          "description": "iTerm tab number"
+        },
+        "name": {
+          "type": "string",
+          "description": "Worker name from session"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch name"
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Previous state"
+        },
+        "to": {
+          "type": "string",
+          "description": "New state"
+        }
+      }
+    },
+    "pr": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "integer",
+          "description": "PR number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "passed", "failed"],
+          "description": "CI status"
+        }
+      }
+    },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["qa_guardian", "devops", "code_simplifier", "security"],
+          "description": "Agent name"
+        },
+        "result": {
+          "type": "string",
+          "enum": ["pending", "passed", "failed"],
+          "description": "Agent result"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Project name"
+        },
+        "status": {
+          "type": "string",
+          "description": "Project status"
+        },
+        "iteration": {
+          "type": "integer",
+          "description": "Current iteration number"
+        }
+      }
+    },
+    "duration_ms": {
+      "type": "integer",
+      "description": "Duration in milliseconds (for timing events)"
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Error code"
+        },
+        "message": {
+          "type": "string",
+          "description": "Error message"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Additional event-specific data"
+    }
+  }
+}

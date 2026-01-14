@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Orchestrator Metrics",
+  "description": "Prometheus-compatible metrics for Claude Orchestrator",
+  "type": "object",
+  "definitions": {
+    "counter": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "counter" },
+        "help": { "type": "string" },
+        "value": { "type": "number", "minimum": 0 }
+      }
+    },
+    "gauge": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "gauge" },
+        "help": { "type": "string" },
+        "value": { "type": "number" }
+      }
+    },
+    "histogram": {
+      "type": "object",
+      "properties": {
+        "type": { "const": "histogram" },
+        "help": { "type": "string" },
+        "buckets": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        },
+        "sum": { "type": "number" },
+        "count": { "type": "number" }
+      }
+    }
+  },
+  "properties": {
+    "counters": {
+      "type": "object",
+      "properties": {
+        "orchestrator_projects_total": {
+          "description": "Total number of projects started",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_projects_completed_total": {
+          "description": "Total number of projects completed successfully",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_projects_failed_total": {
+          "description": "Total number of projects that failed",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_workers_spawned_total": {
+          "description": "Total number of workers spawned",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_workers_merged_total": {
+          "description": "Total number of workers that merged successfully",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_prs_created_total": {
+          "description": "Total number of PRs created",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_prs_merged_total": {
+          "description": "Total number of PRs merged",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_reviews_total": {
+          "description": "Total QA reviews run",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_reviews_passed_total": {
+          "description": "QA reviews that passed",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_reviews_failed_total": {
+          "description": "QA reviews that failed",
+          "$ref": "#/definitions/counter"
+        },
+        "orchestrator_iterations_total": {
+          "description": "Total number of project iterations",
+          "$ref": "#/definitions/counter"
+        }
+      }
+    },
+    "gauges": {
+      "type": "object",
+      "properties": {
+        "orchestrator_active_workers": {
+          "description": "Current number of active workers",
+          "$ref": "#/definitions/gauge"
+        },
+        "orchestrator_active_projects": {
+          "description": "Current number of active projects",
+          "$ref": "#/definitions/gauge"
+        },
+        "orchestrator_up": {
+          "description": "Whether orchestrator is running (1 = up, 0 = down)",
+          "$ref": "#/definitions/gauge"
+        }
+      }
+    },
+    "histograms": {
+      "type": "object",
+      "properties": {
+        "orchestrator_prd_generation_seconds": {
+          "description": "Time to generate PRD",
+          "$ref": "#/definitions/histogram"
+        },
+        "orchestrator_worker_execution_seconds": {
+          "description": "Time for worker to complete",
+          "$ref": "#/definitions/histogram"
+        },
+        "orchestrator_review_seconds": {
+          "description": "Time for QA review to complete",
+          "$ref": "#/definitions/histogram"
+        },
+        "orchestrator_project_total_seconds": {
+          "description": "Total time for project completion",
+          "$ref": "#/definitions/histogram"
+        }
+      }
+    }
+  }
+}

@@ -10,6 +10,33 @@ SESSIONS_FILE="$HOME/.claude/active-sessions.log"
 STATE_DIR="$HOME/.claude/worker-states"
 PROJECT_STATE_FILE="$HOME/.claude/project-state.json"
 
+# Source utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source structured logging
+if [ -f "$SCRIPT_DIR/logging.sh" ]; then
+    # shellcheck source=./logging.sh
+    source "$SCRIPT_DIR/logging.sh"
+    STRUCTURED_LOGGING=true
+else
+    STRUCTURED_LOGGING=false
+fi
+
+# Source window utilities for window-scoped tab management
+if [ -f "$SCRIPT_DIR/window-utils.sh" ]; then
+    # shellcheck source=./window-utils.sh
+    source "$SCRIPT_DIR/window-utils.sh"
+    WINDOW_SCOPED=true
+else
+    WINDOW_SCOPED=false
+fi
+
+# Get the orchestrator window ID (set by claude-orchestrator command)
+ORCHESTRATOR_WINDOW_ID="${ORCHESTRATOR_WINDOW_ID:-}"
+if [ -z "$ORCHESTRATOR_WINDOW_ID" ] && [ "$WINDOW_SCOPED" = true ]; then
+    ORCHESTRATOR_WINDOW_ID=$(get_window_id 2>/dev/null || echo "")
+fi
+
 mkdir -p "$(dirname "$LOG_FILE")"
 mkdir -p "$STATE_DIR"
 
@@ -34,7 +61,14 @@ update_project_status() {
     local TMP_FILE
     TMP_FILE=$(mktemp)
     jq --arg status "$NEW_STATUS" '.status = $status' "$PROJECT_STATE_FILE" > "$TMP_FILE" && mv "$TMP_FILE" "$PROJECT_STATE_FILE"
-    log "Project status updated: $NEW_STATUS"
+
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        local PROJECT_NAME
+        PROJECT_NAME=$(get_project_name)
+        log_project_status_change "$PROJECT_NAME" "$NEW_STATUS"
+    else
+        log "Project status updated: $NEW_STATUS"
+    fi
 }
 
 update_worker_status_in_project() {
@@ -71,16 +105,25 @@ notify_human() {
     # macOS notification
     osascript -e "display notification \"$MESSAGE\" with title \"$TITLE\" sound name \"Glass\"" 2>/dev/null || true
 
-    log "NOTIFICATION: $TITLE - $MESSAGE"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_notification_sent "$TITLE" "$MESSAGE"
+    else
+        log "NOTIFICATION: $TITLE - $MESSAGE"
+    fi
 }
 
 # ============================================================
 # END PROJECT MODE FUNCTIONS
 # ============================================================
 
+# Legacy log function - now wraps structured logging
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_info "$*"
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+    fi
 }
 
 if [ -f "$PID_FILE" ]; then
@@ -92,10 +135,18 @@ if [ -f "$PID_FILE" ]; then
 fi
 
 echo $$ > "$PID_FILE"
-log "Orchestrator started (PID: $$)"
+if [ "$STRUCTURED_LOGGING" = true ]; then
+    log_orchestrator_started "$$"
+else
+    log "Orchestrator started (PID: $$)"
+fi
 
 cleanup() {
-    log "Orchestrator stopping..."
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_orchestrator_stopped
+    else
+        log "Orchestrator stopping..."
+    fi
     rm -f "$PID_FILE"
     exit 0
 }
@@ -136,10 +187,18 @@ clear_tab_state() {
 }
 
 read_worker_output() {
-    osascript << APPLESCRIPT 2>/dev/null | tail -"${2:-100}"
+    local TAB="$1"
+    local LINES="${2:-100}"
+
+    # Use window-scoped function if available
+    if [ "$WINDOW_SCOPED" = true ] && [ -n "$ORCHESTRATOR_WINDOW_ID" ]; then
+        read_tab_output "$TAB" "$LINES"
+    else
+        # Fallback to current window (legacy behavior)
+        osascript << APPLESCRIPT 2>/dev/null | tail -"$LINES"
 tell application "iTerm"
     tell current window
-        tell tab $1
+        tell tab $TAB
             tell current session
                 return contents
             end tell
@@ -147,6 +206,7 @@ tell application "iTerm"
     end tell
 end tell
 APPLESCRIPT
+    fi
 }
 
 detect_worker_state() {
@@ -181,8 +241,13 @@ detect_worker_state() {
 send_to_worker() {
     local TAB="$1"
     local MSG="$2"
-    # Use write text WITHOUT activating window - sends text directly to session
-    osascript << APPLESCRIPT 2>/dev/null
+
+    # Use window-scoped function if available
+    if [ "$WINDOW_SCOPED" = true ] && [ -n "$ORCHESTRATOR_WINDOW_ID" ]; then
+        send_to_tab "$TAB" "$MSG"
+    else
+        # Fallback to current window (legacy behavior)
+        osascript << APPLESCRIPT 2>/dev/null
 tell application "iTerm"
     -- Do NOT activate - this steals focus
     tell current window
@@ -195,13 +260,19 @@ tell application "iTerm"
     end tell
 end tell
 APPLESCRIPT
+    fi
     log "Sent to tab $TAB: $MSG"
 }
 
 send_enter() {
     local TAB="$1"
-    # Send empty write text which just presses return - no focus stealing
-    osascript << APPLESCRIPT 2>/dev/null
+
+    # Use window-scoped function if available
+    if [ "$WINDOW_SCOPED" = true ] && [ -n "$ORCHESTRATOR_WINDOW_ID" ]; then
+        send_to_tab "$TAB" ""
+    else
+        # Fallback to current window (legacy behavior)
+        osascript << APPLESCRIPT 2>/dev/null
 tell application "iTerm"
     -- Do NOT activate - this steals focus
     tell current window
@@ -214,6 +285,7 @@ tell application "iTerm"
     end tell
 end tell
 APPLESCRIPT
+    fi
     log "Sent Enter to tab $TAB"
 }
 
@@ -257,7 +329,11 @@ check_pr_status() {
 }
 
 merge_pr() {
-    log "Auto-merging PR #$1"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_pr_merged "$1"
+    else
+        log "Auto-merging PR #$1"
+    fi
     gh pr merge "$1" --repo "$REPO_FULL" --squash --delete-branch 2>&1 | tee -a "$LOG_FILE"
 }
 
@@ -267,7 +343,11 @@ run_review() {
     local BRANCH="$2"
     local TAB="$3"
 
-    log "Running /review for PR #$PR_NUM (branch: $BRANCH)"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_review_started "$PR_NUM" "$BRANCH" "$TAB"
+    else
+        log "Running /review for PR #$PR_NUM (branch: $BRANCH)"
+    fi
 
     # Add 'review-pending' label to track review status
     gh pr edit "$PR_NUM" --repo "$REPO_FULL" --add-label "review-pending" 2>/dev/null || true
@@ -297,7 +377,11 @@ check_review_complete() {
 # Mark PR as reviewed
 mark_pr_reviewed() {
     local PR_NUM="$1"
-    log "PR #$PR_NUM passed review"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_review_completed "$PR_NUM" "passed"
+    else
+        log "PR #$PR_NUM passed review"
+    fi
     gh pr edit "$PR_NUM" --repo "$REPO_FULL" --remove-label "review-pending" --add-label "reviewed" 2>/dev/null || true
 }
 
@@ -338,7 +422,11 @@ run_security_scan() {
     local PR_NUM="$1"
     local TAB="$2"
 
-    log "Running security scan for PR #$PR_NUM"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_agent_started "security" "$PR_NUM" "$TAB"
+    else
+        log "Running security scan for PR #$PR_NUM"
+    fi
     send_to_worker "$TAB" "Run 'npm audit --audit-level=high' and report any vulnerabilities. If critical issues found, list them clearly."
     add_agent_run "$TAB" "security"
 }
@@ -362,7 +450,11 @@ run_devops_review() {
     local BRANCH="$2"
     local TAB="$3"
 
-    log "Running devops review for PR #$PR_NUM (infrastructure changes detected)"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_agent_started "devops" "$PR_NUM" "$TAB"
+    else
+        log "Running devops review for PR #$PR_NUM (infrastructure changes detected)"
+    fi
     send_to_worker "$TAB" "/deploy"
     add_agent_run "$TAB" "devops"
 }
@@ -373,7 +465,11 @@ run_code_simplifier() {
     local BRANCH="$2"
     local TAB="$3"
 
-    log "Running code-simplifier for PR #$PR_NUM (100+ lines changed)"
+    if [ "$STRUCTURED_LOGGING" = true ]; then
+        log_agent_started "code_simplifier" "$PR_NUM" "$TAB"
+    else
+        log "Running code-simplifier for PR #$PR_NUM (100+ lines changed)"
+    fi
     send_to_worker "$TAB" "/qcode"
     add_agent_run "$TAB" "simplifier"
 }
@@ -427,20 +523,52 @@ all_agents_complete() {
 }
 
 close_tab() {
-    log "Closing tab $1"
-    osascript << APPLESCRIPT 2>/dev/null
+    local TAB="$1"
+    log "Closing tab $TAB"
+
+    # Use window-scoped function if available
+    if [ "$WINDOW_SCOPED" = true ] && [ -n "$ORCHESTRATOR_WINDOW_ID" ]; then
+        osascript << APPLESCRIPT 2>/dev/null
 tell application "iTerm"
-    tell current window
-        tell tab $1
+    tell window id $ORCHESTRATOR_WINDOW_ID
+        tell tab $TAB
             close
         end tell
     end tell
 end tell
 APPLESCRIPT
+    else
+        # Fallback to current window (legacy behavior)
+        osascript << APPLESCRIPT 2>/dev/null
+tell application "iTerm"
+    tell current window
+        tell tab $TAB
+            close
+        end tell
+    end tell
+end tell
+APPLESCRIPT
+    fi
 }
 
 get_worker_tabs() {
-    osascript << 'APPLESCRIPT' 2>/dev/null
+    # Use window-scoped function if available
+    if [ "$WINDOW_SCOPED" = true ] && [ -n "$ORCHESTRATOR_WINDOW_ID" ]; then
+        osascript << APPLESCRIPT 2>/dev/null
+tell application "iTerm"
+    tell window id $ORCHESTRATOR_WINDOW_ID
+        set tabCount to count of tabs
+        set output to ""
+        repeat with t from 2 to tabCount
+            set output to output & t & " "
+        end repeat
+        return output
+    end tell
+end tell
+APPLESCRIPT
+    else
+        # Fallback to current window (legacy behavior)
+        osascript << 'APPLESCRIPT' 2>/dev/null
 tell application "iTerm"
     tell current window
         set tabCount to count of tabs
@@ -452,6 +580,7 @@ tell application "iTerm"
     end tell
 end tell
 APPLESCRIPT
+    fi
 }
 
 get_worker_info() {
@@ -472,7 +601,11 @@ while true; do
         PREV_STATE=$(get_state "$TAB")
         
         if [ "$STATE" != "$PREV_STATE" ]; then
-            log "Tab $TAB: $PREV_STATE -> $STATE"
+            if [ "$STRUCTURED_LOGGING" = true ]; then
+                log_worker_state_change "$TAB" "$PREV_STATE" "$STATE"
+            else
+                log "Tab $TAB: $PREV_STATE -> $STATE"
+            fi
             set_state "$TAB" "$STATE"
         fi
         
@@ -489,9 +622,17 @@ while true; do
                 if [ -n "$BRANCH" ]; then
                     PR_NUM=$(get_pr_for_branch "$BRANCH")
                     if [ -n "$PR_NUM" ]; then
-                        log "Tab $TAB has PR #$PR_NUM"
+                        if [ "$STRUCTURED_LOGGING" = true ]; then
+                            log_pr_detected "$TAB" "$PR_NUM" "$BRANCH"
+                        else
+                            log "Tab $TAB has PR #$PR_NUM"
+                        fi
                         PR_STATUS=$(check_pr_status "$PR_NUM")
-                        log "PR #$PR_NUM CI status: $PR_STATUS"
+                        if [ "$STRUCTURED_LOGGING" = true ]; then
+                            log_pr_ci_status "$PR_NUM" "$PR_STATUS"
+                        else
+                            log "PR #$PR_NUM CI status: $PR_STATUS"
+                        fi
 
                         if [ "$PR_STATUS" = "PASSED" ]; then
                             # CI passed - check review status
@@ -583,7 +724,11 @@ while true; do
         if [ "$PROJECT_STATUS" = "workers_active" ]; then
             if check_all_project_workers_complete; then
                 PROJECT_NAME=$(get_project_name)
-                log "PROJECT MODE: All workers have merged for project: $PROJECT_NAME"
+                if [ "$STRUCTURED_LOGGING" = true ]; then
+                    log_project_workers_complete "$PROJECT_NAME"
+                else
+                    log "PROJECT MODE: All workers have merged for project: $PROJECT_NAME"
+                fi
                 update_project_status "all_merged"
 
                 # Notify the planner session (Tab 1) that work is complete

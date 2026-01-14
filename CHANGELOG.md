@@ -1,3 +1,60 @@
+## [2.3] - 2026-01-14
+
+### Added
+
+- **`claude-orchestrator` Command**: New wrapper to start Claude as the orchestrator
+  - Automatically captures the current iTerm window ID
+  - Pre-loads orchestrator context so you don't need to remind Claude of its role
+  - Usage: `claude-orchestrator [repo-name]`
+
+- **Window-Scoped Tab Management**: Workers now spawn in the orchestrator's window only
+  - Each iTerm window can have its own orchestrator for different projects
+  - No more tabs appearing in random windows
+  - Window ID stored in `~/.claude/orchestrator-window-id`
+  - New `window-utils.sh` utility with window-scoped AppleScript functions
+
+- **Structured JSON Logging**: All orchestrator events now logged in JSON Lines format
+  - New `logging.sh` utility with typed event functions
+  - Logs written to `~/.claude/logs/orchestrator.jsonl`
+  - Backward compatible text logs still written to `~/.claude/orchestrator.log`
+  - Event types: worker_state_change, pr_detected, review_started, agent_completed, etc.
+
+- **Prometheus Metrics Endpoint**: `/metrics` endpoint for monitoring integration
+  - New `metrics.sh` utility for counter/gauge/histogram tracking
+  - New `metrics-server.sh` lightweight HTTP server on port 9090
+  - Counters: projects_total, workers_spawned, prs_merged, reviews_passed, etc.
+  - Gauges: active_workers, active_projects, orchestrator_up
+  - Histograms: prd_generation_seconds, worker_execution_seconds, review_seconds
+
+- **Cost Tracking**: Claude API usage estimation and budget alerts
+  - New `cost-tracker.sh` utility for tracking token usage
+  - Per-project cost files in `~/.claude/costs/`
+  - Model-specific pricing (Opus, Sonnet, Haiku)
+  - Budget alert notifications when threshold exceeded
+  - Functions: `record_usage`, `get_project_summary`, `generate_cost_report`
+
+- **Web Dashboard**: Real-time monitoring UI
+  - New `dashboard/` directory with HTML/JS dashboard
+  - New `start-dashboard.sh` launcher script
+  - Live metrics display with auto-refresh
+  - Worker status cards with state visualization
+  - Cost breakdown panel
+  - Streaming log viewer
+
+- **Documentation**: New `docs/OBSERVABILITY.md` guide covering all observability features
+
+### Changed
+
+- `orchestrator-loop.sh` now sources `logging.sh` for structured logging
+- All major orchestrator events emit both JSON and text logs
+- Log functions are backward compatible - existing log() calls still work
+
+### Technical Details
+
+- JSON log schema defined in `schemas/log-event.json`
+- Prometheus metrics schema in `schemas/metrics.json`
+- Cost summary template in `templates/cost-summary.md`
+
 ## [2.2] - 2026-01-13
 
 ### Fixed

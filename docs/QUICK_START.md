@@ -65,12 +65,37 @@ wt --help
 
 ## Your First Parallel Development Session
 
-### Step 1: Start Claude in Your Project
+### Step 1: Start Claude as the Orchestrator
+
+Open a new iTerm window for your project and use the `claude-orchestrator` command:
 
 ```bash
 cd ~/your-project
-claude
+claude-orchestrator
 ```
+
+This does three important things:
+1. **Captures the window ID** - All worker tabs will spawn in THIS window only
+2. **Pre-loads orchestrator context** - Claude knows it's the orchestrator (no need to remind it)
+3. **Sets up multi-project support** - You can have different windows for different projects
+
+You'll see a welcome banner:
+```
+╔════════════════════════════════════════════════════════════╗
+║           Claude Orchestrator v2.3                         ║
+╠════════════════════════════════════════════════════════════╣
+║  Window ID: 12345 (all workers will spawn here)
+║  Project:   your-project
+║                                                            ║
+║  Commands:                                                 ║
+║    /project "description"  - Full autonomous execution     ║
+║    /spawn name "task"      - Create worker in this window  ║
+║    /status                 - Check all workers             ║
+║    /merge name             - Merge completed worker        ║
+╚════════════════════════════════════════════════════════════╝
+```
+
+**Alternative (legacy):** You can still use `claude` directly, but workers may spawn in different windows.
 
 ### Step 2: Plan the Work
 
@@ -186,6 +211,38 @@ tail -f ~/.claude/orchestrator.log
 Stop when done:
 ```bash
 orchestrator-stop
+```
+
+## Multi-Project Workflow
+
+With v2.3, you can run multiple orchestrators for different projects simultaneously:
+
+### Window Per Project
+
+```bash
+# Window 1: Project A
+cd ~/project-a
+claude-orchestrator project-a
+# Workers spawn as tabs in Window 1 only
+
+# Window 2: Project B (separate iTerm window)
+cd ~/project-b
+claude-orchestrator project-b
+# Workers spawn as tabs in Window 2 only
+```
+
+Each window:
+- Has its own orchestrator (Tab 1)
+- Has its own workers (Tab 2+)
+- Manages only its own tabs
+- Uses a unique window ID for isolation
+
+### Check Window Status
+
+The window ID is stored in `~/.claude/orchestrator-window-id`. If you need to verify:
+
+```bash
+cat ~/.claude/orchestrator-window-id
 ```
 
 ## Tips for Success

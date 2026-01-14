@@ -374,6 +374,7 @@ alias workers='~/.claude/scripts/orchestrator.sh'
 alias orchestrator-start='~/.claude/scripts/orchestrator-loop.sh &'
 alias orchestrator-stop='~/.claude/scripts/orchestrator-stop.sh'
 alias orchestrator-status='~/.claude/scripts/orchestrator-status.sh'
+alias claude-orchestrator='~/.claude/scripts/claude-orchestrator'
 
 ALIASES
         success "Added aliases to $profile"
